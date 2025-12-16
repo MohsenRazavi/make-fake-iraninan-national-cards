@@ -1,0 +1,6 @@
+venv/
+*.pyc
+samples/
+__pycache__/
+.vscode/
+.idea/
