@@ -94,6 +94,7 @@ TEXT_POSITION = (285, 83)
 FONT_SIZE = 18
 TEXT_COLOR = 'black'
 BACKGROUND_COLOR = '#8EC5E1' 
+MAKE_REALISTIC = True
 
 augmentation_pipeline = get_augmentation_pipeline()
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -114,8 +115,8 @@ for i in range(NUMBER_OF_SAMPLES):
         TEXT_COLOR, 
         BACKGROUND_COLOR
     )
-
-    img_final_pil = make_image_realistic(img_with_text_pil, augmentation_pipeline)
+    if MAKE_REALISTIC:
+        img_final_pil = make_image_realistic(img_with_text_pil, augmentation_pipeline)
     
     img_final_pil.save(os.path.join(OUTPUT_DIR, filename))
 
