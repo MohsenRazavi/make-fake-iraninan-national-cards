@@ -50,7 +50,7 @@ def get_augmentation_pipeline():
         A.Affine(
             scale=(0.95, 1.05), # زوم جزئی
             translate_percent={"x": (-0.05, 0.05), "y": (-0.05, 0.05)}, # جابجایی جزئی
-            rotate=(-15, 15),   # چرخش تا 15 درجه
+            rotate=(-5, 5),   # چرخش تا 5 درجه
             cval=cv2.BORDER_REPLICATE, # پر کردن حاشیه
             p=0.8
         ),
@@ -60,10 +60,9 @@ def get_augmentation_pipeline():
         
         # 3. شبیه‌سازی نقص‌های دوربین
         A.OneOf([
-            # GaussNoise: برای سازگاری بهتر، محدودیت واریانس به عنوان پارامتر اول داده شد
-            A.GaussNoise(var_limit=(10.0, 30.0), p=0.5), 
-            A.GaussianBlur(blur_limit=(3, 5), p=0.5),
-            A.MotionBlur(blur_limit=5, p=0.2),
+            A.GaussianBlur(blur_limit=1, p=0.1),
+            A.MotionBlur(blur_limit=(1, 3), p=0.2),
+            A.GaussNoise(var_limit=(1.0, 5.0), p=0.2), 
         ], p=0.6),
         
         # 4. تغییر جزئی در رنگ‌ها
@@ -89,7 +88,7 @@ def make_image_realistic(pil_image, pipeline):
 
 INPUT_IMAGE_PATH = './sample_national_card.png'
 FONT_PATH = './Yekan.ttf'      
-NUMBER_OF_SAMPLES = 60
+NUMBER_OF_SAMPLES = 1_000_000
 OUTPUT_DIR = 'samples'
 TEXT_POSITION = (285, 83)  
 FONT_SIZE = 18
