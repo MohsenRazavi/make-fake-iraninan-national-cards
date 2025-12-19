@@ -46,25 +46,24 @@ def write_text_with_background(image_path, text, position, font_path, font_size,
 def get_augmentation_pipeline():
     """تعریف پایپ‌لاین تغییرات واقع‌گرایانه با رفع هشدارهای Albumentations."""
     transform = A.Compose([
-        # 1. چرخش، مقیاس و جابجایی (ShiftScaleRotate به Affine تغییر کرد)
+        # 1. شبیه‌سازی نقص‌های دوربین
+        A.OneOf([
+            A.GaussianBlur(blur_limit=1, p=0.1),
+            A.MotionBlur(blur_limit=3, p=0.2),
+            A.GaussNoise(p=0.2),
+        ], p=0.6),
+
+        # 2. چرخش، مقیاس و جابجایی (ShiftScaleRotate به Affine تغییر کرد)
         A.Affine(
             scale=(0.95, 1.05), # زوم جزئی
             translate_percent={"x": (-0.05, 0.05), "y": (-0.05, 0.05)}, # جابجایی جزئی
             rotate=(-5, 5),   # چرخش تا 5 درجه
-            cval=cv2.BORDER_REPLICATE, # پر کردن حاشیه
             p=0.8
         ),
         
-        # 2. تغییرات نوری
+        # 3. تغییرات نوری
         A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=1.0),
-        
-        # 3. شبیه‌سازی نقص‌های دوربین
-        A.OneOf([
-            A.GaussianBlur(blur_limit=1, p=0.1),
-            A.MotionBlur(blur_limit=(1, 3), p=0.2),
-            A.GaussNoise(var_limit=(1.0, 5.0), p=0.2), 
-        ], p=0.6),
-        
+
         # 4. تغییر جزئی در رنگ‌ها
         A.HueSaturationValue(hue_shift_limit=10, sat_shift_limit=20, val_shift_limit=10, p=0.4),
     ])
