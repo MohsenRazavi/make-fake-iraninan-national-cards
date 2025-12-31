@@ -1,11 +1,12 @@
-from PIL import Image, ImageDraw, ImageFont
-import random
 import os
-import cv2
+import random
+
 import albumentations as A
 import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 FA_NUMBERS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
+
 
 def generate_national_code_fa():
     """تولید یک کد ملی ۱۰ رقمی رندوم با اعداد فارسی"""
@@ -13,7 +14,8 @@ def generate_national_code_fa():
     code_fa = ''.join(FA_NUMBERS[int(d)] for d in code_en)
     return code_en, code_fa
 
-def write_text_with_background(image_path, text, position, font_path, font_size, text_color, bg_color):
+
+def write_national_code_on_national_card(image_path, text, position, font_path, font_size, text_color, bg_color):
     """
     نوشتن متن روی تصویر PIL با پس زمینه مستطیلی برای پوشاندن متن قبلی.
     """
@@ -30,16 +32,16 @@ def write_text_with_background(image_path, text, position, font_path, font_size,
         return None
 
     draw = ImageDraw.Draw(image)
-    
+
     bbox = draw.textbbox(position, text, font=font)
-    
+
     padding = 5
     rect_coords = (bbox[0] - padding, bbox[1] - padding, bbox[2] + padding, bbox[3] + padding)
-    
+
     draw.rectangle(rect_coords, fill=bg_color)
-    
+
     draw.text(position, text, font=font, fill=text_color)
-    
+
     return image
 
 
@@ -55,12 +57,12 @@ def get_augmentation_pipeline():
 
         # 2. چرخش، مقیاس و جابجایی (ShiftScaleRotate به Affine تغییر کرد)
         A.Affine(
-            scale=(0.95, 1.05), # زوم جزئی
-            translate_percent={"x": (-0.05, 0.05), "y": (-0.05, 0.05)}, # جابجایی جزئی
-            rotate=(-5, 5),   # چرخش تا 5 درجه
+            scale=(0.95, 1.05),  # زوم جزئی
+            translate_percent={"x": (-0.02, 0.02), "y": (-0.02, 0.02)},  # جابجایی جزئی
+            rotate=(-1, 1),  # چرخش تا 1 درجه
             p=0.8
         ),
-        
+
         # 3. تغییرات نوری
         A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=1.0),
 
@@ -69,56 +71,64 @@ def get_augmentation_pipeline():
     ])
     return transform
 
+
 def make_image_realistic(pil_image, pipeline):
     """
     اعمال تغییرات واقع‌گرایانه Albumentations بر روی یک تصویر PIL.
     """
     image_np = np.array(pil_image)
-    
+
     image_rgb = image_np
 
     augmented = pipeline(image=image_rgb)
     augmented_image_rgb = augmented['image']
 
     augmented_pil_image = Image.fromarray(augmented_image_rgb)
-    
+
     return augmented_pil_image
 
 
-INPUT_IMAGE_PATH = './sample_national_card.png'
-FONT_PATH = './Yekan.ttf'      
-NUMBER_OF_SAMPLES = 1_000_000
+# ==================CONFIG====================
+SAMPLE_NATIONAL_CARD = './sample_national_card.png'
+FONT_PATH = './Yekan.ttf'
+NUMBER_OF_SAMPLES = 100
 OUTPUT_DIR = 'samples'
-TEXT_POSITION = (285, 83)  
+TEXT_POSITION = (285, 83)
 FONT_SIZE = 18
 TEXT_COLOR = 'black'
-BACKGROUND_COLOR = '#8EC5E1' 
+BACKGROUND_COLOR = '#8EC5E1'
 MAKE_REALISTIC = True
 
-augmentation_pipeline = get_augmentation_pipeline()
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-random.seed()
 
-print(f"شروع تولید {NUMBER_OF_SAMPLES} نمونه...")
+# ============================================
 
-for i in range(NUMBER_OF_SAMPLES):
-    national_code_en, national_code_fa = generate_national_code_fa()
-    filename = f"{national_code_en}.png"
+def main():
+    augmentation_pipeline = get_augmentation_pipeline()
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    random.seed()
 
-    img_with_text_pil = write_text_with_background(
-        INPUT_IMAGE_PATH, 
-        national_code_fa, 
-        TEXT_POSITION, 
-        FONT_PATH, 
-        FONT_SIZE, 
-        TEXT_COLOR, 
-        BACKGROUND_COLOR
-    )
-    if MAKE_REALISTIC:
-        img_final_pil = make_image_realistic(img_with_text_pil, augmentation_pipeline)
-    
-    img_final_pil.save(os.path.join(OUTPUT_DIR, filename))
+    print(f"شروع تولید {NUMBER_OF_SAMPLES} نمونه...")
 
-    print(f"✅ نمونه {i+1}/{NUMBER_OF_SAMPLES} با کد {national_code_fa} ذخیره شد.")
+    for i in range(NUMBER_OF_SAMPLES):
+        national_code_en, national_code_fa = generate_national_code_fa()
+        fake_national_card = write_national_code_on_national_card(
+            SAMPLE_NATIONAL_CARD,
+            national_code_fa,
+            TEXT_POSITION,
+            FONT_PATH,
+            FONT_SIZE,
+            TEXT_COLOR,
+            BACKGROUND_COLOR
+        )
+        fake_national_card.save(os.path.join(OUTPUT_DIR, f'{national_code_en}.png'))
+        if MAKE_REALISTIC:
+            realistic_fake_national_card = make_image_realistic(fake_national_card, augmentation_pipeline)
+            realistic_fake_national_card.save(os.path.join(OUTPUT_DIR, f'{national_code_en}_realistic.png'))
 
-print("\nعملیات با موفقیت به پایان رسید.")
+        print(f"✅ نمونه {i + 1}/{NUMBER_OF_SAMPLES} با کد {national_code_fa} ذخیره شد.")
+
+    print("\nعملیات با موفقیت به پایان رسید.")
+
+
+if __name__ == "__main__":
+    main()
