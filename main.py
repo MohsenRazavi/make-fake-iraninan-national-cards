@@ -99,7 +99,10 @@ TEXT_COLOR = 'black'
 BACKGROUND_COLOR = '#8EC5E1'
 MAKE_REALISTIC = True
 
-
+try:
+    from local_config import *
+except ImportError:
+    pass
 # ============================================
 
 def main():

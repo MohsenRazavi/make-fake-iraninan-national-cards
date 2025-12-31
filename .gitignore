@@ -4,3 +4,4 @@ samples/
 __pycache__/
 .vscode/
 .idea/
+local_config.py
