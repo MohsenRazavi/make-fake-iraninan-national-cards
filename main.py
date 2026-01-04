@@ -60,7 +60,7 @@ def get_augmentation_pipeline():
             scale=(0.95, 1.05),  # زوم جزئی
             translate_percent={"x": (-0.02, 0.02), "y": (-0.02, 0.02)},  # جابجایی جزئی
             rotate=(-1, 1),  # چرخش تا 1 درجه
-            p=0.8
+            p=1
         ),
 
         # 3. تغییرات نوری
@@ -92,7 +92,7 @@ def make_image_realistic(pil_image, pipeline):
 SAMPLE_NATIONAL_CARD = './sample_national_card.png'
 FONT_PATH = './Yekan.ttf'
 NUMBER_OF_SAMPLES = 100
-OUTPUT_DIR = 'samples'
+OUTPUT_DIR = '../samples'
 TEXT_POSITION = (285, 83)
 FONT_SIZE = 18
 TEXT_COLOR = 'black'
@@ -105,14 +105,13 @@ except ImportError:
     pass
 # ============================================
 
-def main():
+def make_samples():
     augmentation_pipeline = get_augmentation_pipeline()
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     random.seed()
 
     print(f"شروع تولید {NUMBER_OF_SAMPLES} نمونه...")
-
-    for i in range(NUMBER_OF_SAMPLES):
+    for i in range(0, NUMBER_OF_SAMPLES, 2 if MAKE_REALISTIC else 1):
         national_code_en, national_code_fa = generate_national_code_fa()
         fake_national_card = write_national_code_on_national_card(
             SAMPLE_NATIONAL_CARD,
@@ -134,4 +133,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    make_samples()
